@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle da Smart House</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="password"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Controle da Casa Inteligente</h1>
+    
+    <!-- Botão para ligar/desligar o LED -->
+    <button id="toggleLedSalaBtn">Ligar LED Sala</button>
+
+    <!-- Botão para ligar/desligar o LED Garagem -->
+    <button id="toggleLedGaragemBtn">Ligar LED Garagem</button>
+
+    <!-- Botão para abrir/fechar o portão -->
+    <button id="toggleGateBtn">Abrir Portão</button>
+
+    <!-- Campo de senha para abrir o portão -->
+    <input type="password" id="passwordInput" placeholder="Digite a senha">
+
+    <!-- Botão para enviar a senha -->
+    <button id="submitPasswordBtn">Enviar Senha</button>
+</div>
+
+<script>
+    // URL do ESP32
+    const esp32Url = 'http://192.168.218.150';  // Substitua pelo IP do seu ESP32
+
+    // Controle de LED
+    const toggleLedSalaBtn = document.getElementById('toggleLedSalaBtn');
+    const toggleLedGaragemBtn = document.getElementById('toggleLedGaragemBtn');
+
+    let ledSalaStatus = false;
+    let ledGaragemStatus = false;
+
+    toggleLedSalaBtn.addEventListener('click', function() {
+        ledSalaStatus = !ledSalaStatus;
+        const ledAction = ledSalaStatus ? 'on' : 'off';
+        fetch(`${esp32Url}/ledSala?status=${ledAction}`)
+            .then(response => response.text())
+            .then(data => {
+                toggleLedSalaBtn.textContent = ledSalaStatus ? 'Desligar LED Sala' : 'Ligar LED Sala';
+                console.log(data);
+            })
+            .catch(error => console.error('Erro:', error));
+    });
+
+    toggleLedGaragemBtn.addEventListener('click', function() {
+        ledGaragemStatus = !ledGaragemStatus;
+        const ledAction = ledGaragemStatus ? 'on' : 'off';
+        fetch(`${esp32Url}/ledGaragem?status=${ledAction}`)
+            .then(response => response.text())
+            .then(data => {
+                toggleLedGaragemBtn.textContent = ledGaragemStatus ? 'Desligar LED Garagem' : 'Ligar LED Garegm';
+                console.log(data);
+            })
+            .catch(error => console.error('Erro:', error));
+    });
+
+    // Controle do Portão
+    const toggleGateBtn = document.getElementById('toggleGateBtn');
+    let gateStatus = false;
+    toggleGateBtn.addEventListener('click', function() {
+        gateStatus = !gateStatus;
+        const gateAction = gateStatus ? 'open' : 'close';
+        fetch(`${esp32Url}/gate?status=${gateAction}`)
+            .then(response => response.text())
+            .then(data => {
+                toggleGateBtn.textContent = gateStatus ? 'Fechar Portão' : 'Abrir Portão';
+                console.log(data);
+            })
+            .catch(error => console.error('Erro:', error));
+    });
+
+    // Envio de senha para abrir o portão
+    const submitPasswordBtn = document.getElementById('submitPasswordBtn');
+    const passwordInput = document.getElementById('passwordInput');
+    submitPasswordBtn.addEventListener('click', function() {
+        const password = passwordInput.value;
+        if (password) {
+            fetch(`${esp32Url}/password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `password=${encodeURIComponent(password)}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                alert(data);
+            })
+            .catch(error => console.error('Erro:', error));
+        } else {
+            alert('Por favor, digite uma senha.');
+        }
+    });
+</script>
+
+</body>
+</html>
